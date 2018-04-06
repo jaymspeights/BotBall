@@ -1,0 +1,106 @@
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.js"></script>
+  </head>
+  <body>
+    <select id="games_select">
+    </select>
+    <script type="text/javascript">
+    var updateLoop = setInterval(getState, 100);
+    var selectLoop = setInterval(getGames, 1000);
+
+    var games = [];
+
+    var state;
+    var prev_state;
+
+    $("#games_select").on("change", function () {
+      console.log("changed");
+    });
+    function setup () {
+      createCanvas(800,600);
+      ellipseMode(CORNER);
+      noLoop();
+    }
+
+    function draw() {
+      background(200);
+      if (state == null) return;
+      let scale = (width<height?width:height) /
+          (state.field.width>state.field.height?state.field.width:state.field.height);
+      stroke(0);
+      for (let i = 0; i <= state.field.width+1; i++) {
+        for (let j = 0; j <= state.field.height+1; j++) {
+          noFill();
+          if (i == 0) {
+            if (j >= state.field.goal_start+1 && j <= state.field.goal_end+1) {
+              fill(0,255,0,100);
+            } else {
+              fill(0);
+            }
+          } else if (i == state.field.width+1) {
+            if (j >= state.field.goal_start+1 && j <= state.field.goal_end+1) {
+              fill (0,0,255,100);
+            } else {
+              fill(0);
+            }
+          } else if (j == 0 || j == state.field.height+1) {
+            fill(0)
+          }
+          rect(i*scale, j*scale, scale, scale);
+        }
+      }
+      fill(0, 255, 0);
+      rect((state.players[0].x+1)*scale, (state.players[0].y+1)*scale, scale, scale);
+      fill(0, 0, 255);
+      rect((state.players[1].x+1)*scale, (state.players[1].y+1)*scale, scale, scale);
+
+      fill(255, 0, 0);
+      ellipse((state.ball.x+1)*scale, (state.ball.y+1)*scale, scale, scale);
+    }
+
+    function getGames() {
+      $.get('/games', function (res, err) {
+        let game = $('#games_select').val();
+        let new_games = [];
+
+        for (let game of res) {
+          new_games.push(game.id);
+        }
+        if (new_games != games) {
+          console.log("games dont match")
+          for (let i = games.length-1; i >= 0; i--) {
+            if (!new_games.includes(games[i])) {
+              games.splice(i, 1);
+            }
+          }
+          for (let i = 0; i < new_games.length; i++) {
+            if (!games.includes(new_games[i])) {
+              games.push(new_games[i]);
+            }
+          }
+          $('#games_select').empty();
+          for (let game of games) {
+            $('#games_select').append($("<option>").text(game).val(game));
+          }
+          if (games.includes(game))
+            $('#games_select').val(game);
+        }
+      });
+    }
+
+    function getState() {
+      if ($('#games_select').val() != null) {
+        $.get(`/state?game=${$('#games_select').val()}`, function (res, err) {
+          prev_state = state;
+          state = res;
+          if (state != prev_state) {
+            redraw();
+          }
+        });
+      }
+    }
+    </script>
+  </body>
+</html>
