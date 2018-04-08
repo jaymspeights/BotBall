@@ -61,7 +61,7 @@
     }
 
     function getGames() {
-      $.get('/games', function (res, err) {
+      $.get('/BotBall/games', function (res, err) {
         let game = $('#games_select').val();
         let new_games = [];
 
@@ -92,7 +92,7 @@
 
     function getState() {
       if ($('#games_select').val() != null) {
-        $.get(`/state?game=${$('#games_select').val()}`, function (res, err) {
+        $.get(`/BotBall/state?game=${$('#games_select').val()}`, function (res, err) {
           prev_state = state;
           state = res;
           if (state != prev_state) {

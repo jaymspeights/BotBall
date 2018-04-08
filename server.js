@@ -1,14 +1,18 @@
+'use strict'
+
 var express = require('express');
 var app = express();
 var lcg = require( 'compute-lcg' );
 
 var games = [];
 
-app.get('/', function (req, res) {
+var root = '/BotBall';
+
+app.get(root+'/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/games', function (req, res) {
+app.get(root+'/games', function (req, res) {
   var g = [];
   for (let game of games) {
     g.push({id:game.id});
@@ -16,7 +20,7 @@ app.get('/games', function (req, res) {
   res.send(g);
 });
 
-app.get('/create', function (req, res) {
+app.get(root+'/create', function (req, res) {
   if (req.query.singleplayer) var singleplayer = true;
   else var singleplayer = false;
 
@@ -25,7 +29,7 @@ app.get('/create', function (req, res) {
   res.send({game_id:game.id, error: null});
 });
 
-app.get('/join', function (req, res) {
+app.get(root+'/join', function (req, res) {
   var game_id = req.query.game;
   if (game_id == undefined) {
     res.send({error: "Please include game={game_id} in your query."});
@@ -51,7 +55,7 @@ app.get('/join', function (req, res) {
   res.send({error: "This game has no available players."});
 });
 
-app.get('/move', function (req, res) {
+app.get(root+'/move', function (req, res) {
   var game_id = req.query.game;
   if (game_id == undefined) {
     res.send({error: "Please include game={game_id} in your query."});
@@ -114,7 +118,7 @@ app.get('/move', function (req, res) {
   }
 });
 
-app.get('/state', function (req, res) {
+app.get(root+'/state', function (req, res) {
   var game_id = req.query.game;
   if (game_id == undefined) {
     res.send({error: "Please include game={game_id} in your query."});
@@ -319,7 +323,7 @@ function inBounds(game, x, y) {
 }
 
 function createGame(singleplayer) {
-  game = {players: [], width: 11, height: 7, goal_start: 2, goal_end: 4, ball: {x:5, y:3}};
+  var game = {players: [], width: 11, height: 7, goal_start: 2, goal_end: 4, ball: {x:5, y:3}};
   game.id = getGameID();
   if (!singleplayer) {
     game.players.push({y:3, x:0, id: getPlayerID(), active: false});
