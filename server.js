@@ -133,7 +133,7 @@ function findGame(game_id) {
 
 function viewGame(game, player_id) {
   var view = {field:{}, players: [], ball: {}};
-  view.field = {game: {}, width: game.width, height: game.height, goal_start: game.goal_start, goal_end:game.goal_end};
+  view.field = {width: game.width, height: game.height, goal_start: game.goal_start, goal_end:game.goal_end};
   var you = null;
   for (let i = 0; i < game.players.length; i++) {
     if (game.players[i].id == player_id)
