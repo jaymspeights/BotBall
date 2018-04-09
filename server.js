@@ -8,6 +8,8 @@ var games = [];
 
 var root = '/BotBall';
 
+app.use(root, express.static('public'));
+
 app.get(root+'/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
@@ -258,7 +260,7 @@ function inBounds(game, x, y) {
 }
 
 
-let game_length = 500000;
+let game_length = 300000;
 function createGame(singleplayer) {
   var game = {players: [], width: 11, height: 7, goal_start: 2, goal_end: 4, ball: {x:5, y:3}};
   game.id = getGameID();

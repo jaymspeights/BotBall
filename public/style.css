@@ -1,0 +1,25 @@
+body {
+        margin: 0;
+        padding: 30px 40px;
+        background-color: #4cb8e0;
+}
+@media (orientation: portrait) {
+        body .content {
+                max-width: 100%;
+                box-shadow: 4px 6px 8px rgba(0,0,0,.5);
+        }
+}
+.content {
+        min-height: 75vh;
+        max-width: 600px;
+        padding: 15px;
+        margin: 0 auto;
+        box-shadow: 2px 3px 4px rgba(0,0,0,.5);
+        background-color: white;
+}
+.header * {
+        text-align: center;
+}
+#games_select {
+  width: 125px;
+}
