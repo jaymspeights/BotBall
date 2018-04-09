@@ -50,10 +50,15 @@ app.get(root+'/join', function (req, res) {
         }
       }
       game.start_time = (new Date).getTime() + 5000;
+      return;
     }
   }
   res.send({error: "This game has no available players."});
 });
+
+let directions = {NE: {x:1, y:-1}, E: {x:1, y:0}, SE: {x:1, y:1},
+                  S: {x:0, y:1}, SW: {x:-1, y:1}, W: {x:-1, y:0},
+                  NW: {x:-1, y:-1}, N: {x:0, y:-1}};
 
 app.get(root+'/move', function (req, res) {
   var game_id = req.query.game;
@@ -83,38 +88,18 @@ app.get(root+'/move', function (req, res) {
   } else if (game.start_time > time) {
     res.send({error: "Game has not started: Starting in " + (game.start_time - time)});
     return;
+  } else if (game.ttl < time) {
+    game.over = true;
+    game.winner = -1;
   }
   if (game.over) {
     res.send({error: "Game is over"});
     return;
   }
-  switch (req.query.dir) {
-    case "NW":
-      res.send(tryMove(game, player, -1, -1));
-      break;
-    case "N":
-      res.send(tryMove(game, player, 0, -1));
-      break;
-    case "NE":
-      res.send(tryMove(game, player, 1, -1));
-      break;
-    case "E":
-      res.send(tryMove(game, player, 1, 0));
-      break;
-    case "W":
-      res.send(tryMove(game, player, -1, 0));
-      break;
-    case "S":
-      res.send(tryMove(game, player, 0, 1));
-      break;
-    case "SW":
-      res.send(tryMove(game, player, -1, 1));
-      break;
-    case "SE":
-      res.send(tryMove(game, player, 1, 1));
-      break;
-    default:
-      res.send({error: "Please encode move direction dir=[NW | N | NE | E | SE | S | SW | W]"})
+  if (directions[req.query.dir] == undefined) {
+    res.send({error: "Please encode move direction dir=[NW | N | NE | E | SE | S | SW | W]"});
+  } else {
+    res.send(tryMove(game, player, directions[req.query.dir].x, directions[req.query.dir].y));
   }
 });
 
@@ -128,6 +113,10 @@ app.get(root+'/state', function (req, res) {
   if (game == null) {
     res.send({error: "Game with such an id cannot be found."});
     return;
+  }
+  if (game.ttl < (new Date).getTime() && game.over != true) {
+    game.over = true;
+    game.winner = -1;
   }
   var view = viewGame(game, req.query.player);
   view.error = null;
@@ -154,7 +143,9 @@ function viewGame(game, player_id) {
   if (you != null)
     view.you = you;
 
-  view.game = {over:game.over};
+  view.game = {over:game.over, ttl: game.ttl};
+  if (game.over)
+    view.game.winner = game.winner;
   view.ball = game.ball;
   return view;
 }
@@ -170,119 +161,67 @@ function tryMove(game, player, dir_x, dir_y) {
     player.x = loc_x;
     player.y = loc_y;
     if (game.ball.x == loc_x && game.ball.y == loc_y) {
-      moveBall(game, dir_x, dir_y, 2);
+      moveBall(2);
     }
     return{status:"SUCCESS", error: null};
   } else {
     return {error: "Cannot move out of bounds"};
   }
-}
-
-function moveBall(game, dir_x, dir_y, num) {
-  if (num <= 0) return {status:"SUCCESS", error: null};
-  let ball_x = game.ball.x + dir_x;
-  let ball_y = game.ball.y + dir_y;
-  if (inGoal(game, ball_x, ball_y)) {
-    game.ball.y = ball_y;
-    game.ball.x = ball_x;
-    game.over = true;
-    return true;
-  }
-  if (!inBounds(game, ball_x, ball_y)) {
-    if (ball_x < 0)
-      if (hitPlayer(game, ball_x+2, ball_y)) {
-        ball_x -= dir_x;
-        ball_y -= dir_y;
-        while (true) {
-          let found = false;
-          for (let p of game.players) {
-            if (p.x == ball_x && p.y == ball_y) {
-              ball_x -= dir_x;
-              ball_y -= dir_y;
-              found = true;
-            }
+  function moveBall(num) {
+    if (num <= 0) return {status:"SUCCESS", error: null};
+    let ball_x = game.ball.x + dir_x;
+    let ball_y = game.ball.y + dir_y;
+    if (inGoal(game, ball_x, ball_y)) {
+      game.ball.y = ball_y;
+      game.ball.x = ball_x;
+      endGame(game, player);
+      return true;
+    }
+    if (!inBounds(game, ball_x, ball_y)) {
+      if (ball_x < 0)
+          if (hitPlayer(game, ball_x+2, ball_y)) {
+            return reverseAway();
+          } else {
+            game.ball.x = ball_x+2;
+            game.ball.y = ball_y;
+            return {status:"SUCCESS", error: null};
           }
-          if (!found) break;
+      if (ball_x >= game.width)
+        if (hitPlayer(game, ball_x-2, ball_y)) {
+          return reverseAway();
+        } else {
+          game.ball.x = ball_x-2;
+          game.ball.y = ball_y;
+          return {status:"SUCCESS", error: null};
         }
-        game.ball.x = ball_x;
-        game.ball.y = ball_y;
-        return {status:"SUCCESS", error: null};
-      } else {
-        game.ball.x = ball_x+2;
-        game.ball.y = ball_y;
-        return {status:"SUCCESS", error: null};
-      }
-    if (ball_x >= game.width)
-      if (hitPlayer(game, ball_x-2, ball_y)) {
-        ball_x -= dir_x;
-        ball_y -= dir_y;
-        while (true) {
-          let found = false;
-          for (let p of game.players) {
-            if (p.x == ball_x && p.y == ball_y) {
-              ball_x -= dir_x;
-              ball_y -= dir_y;
-              found = true;
-            }
-          }
-          if (!found) break;
+      if (ball_y < 0)
+        if (hitPlayer(game, ball_x, ball_y+2)) {
+          return reverseAway();
+        } else {
+          game.ball.x = ball_x;
+          game.ball.y = ball_y+2;
+          return {status:"SUCCESS", error: null};
         }
-        game.ball.x = ball_x;
-        game.ball.y = ball_y;
-        return {status:"SUCCESS", error: null};
-      } else {
-        game.ball.x = ball_x-2;
-        game.ball.y = ball_y;
-        return {status:"SUCCESS", error: null};
-      }
-    if (ball_y < 0)
-      if (hitPlayer(game, ball_x, ball_y+2)) {
-        ball_x -= dir_x;
-        ball_y -= dir_y;
-        while (true) {
-          let found = false;
-          for (let p of game.players) {
-            if (p.x == ball_x && p.y == ball_y) {
-              ball_x -= dir_x;
-              ball_y -= dir_y;
-              found = true;
-            }
-          }
-          if (!found) break;
+      if (ball_y >= game.height)
+        if (hitPlayer(game, ball_x, ball_y-2)) {
+          return reverseAway();
+        } else {
+          game.ball.x = ball_x;
+          game.ball.y = ball_y-2;
+          return {status:"SUCCESS", error: null};
         }
-        game.ball.x = ball_x;
-        game.ball.y = ball_y;
-        return {status:"SUCCESS", error: null};
+    } else {
+      if (hitPlayer(game, ball_x, ball_y)) {
+        return reverseAway();
       } else {
         game.ball.x = ball_x;
-        game.ball.y = ball_y+2;
-        return {status:"SUCCESS", error: null};
-      }
-    if (ball_y >= game.height)
-      if (hitPlayer(game, ball_x, ball_y-2)) {
-        ball_x -= dir_x;
-        ball_y -= dir_y;
-        while (true) {
-          let found = false;
-          for (let p of game.players) {
-            if (p.x == ball_x && p.y == ball_y) {
-              ball_x -= dir_x;
-              ball_y -= dir_y;
-              found = true;
-            }
-          }
-          if (!found) break;
-        }
-        game.ball.x = ball_x;
         game.ball.y = ball_y;
-        return {status:"SUCCESS", error: null};
-      } else {
-        game.ball.x = ball_x;
-        game.ball.y = ball_y-2;
-        return {status:"SUCCESS", error: null};
+        return moveBall(num-1);
       }
-  } else {
-    if (hitPlayer(game, ball_x, ball_y)) {
+    }
+    function reverseAway() {
+      ball_x -= dir_x;
+      ball_y -= dir_y;
       while (true) {
         let found = false;
         for (let p of game.players) {
@@ -297,10 +236,6 @@ function moveBall(game, dir_x, dir_y, num) {
       game.ball.x = ball_x;
       game.ball.y = ball_y;
       return {status:"SUCCESS", error: null};
-    } else {
-      game.ball.x = ball_x;
-      game.ball.y = ball_y;
-      return moveBall(game, dir_x, dir_y, num-1);
     }
   }
 }
@@ -322,6 +257,8 @@ function inBounds(game, x, y) {
   return x >= 0 && y >= 0 && x < game.width && y < game.height;
 }
 
+
+let game_length = 500000;
 function createGame(singleplayer) {
   var game = {players: [], width: 11, height: 7, goal_start: 2, goal_end: 4, ball: {x:5, y:3}};
   game.id = getGameID();
@@ -332,6 +269,7 @@ function createGame(singleplayer) {
     game.players.push({y:3, x:0, id: getPlayerID(), active: false});
   }
   game.over = false;
+  game.ttl = (new Date).getTime() + game_length;
   return game;
 }
 
@@ -346,4 +284,21 @@ function createGenerator() {
   }
 }
 
+function endGame(game, winner) {
+  game.over = true;
+  game.winner = winner.id;
+  game.ttl = (new Date).getTime();
+}
+
+let wait_time = 5000;
+function killGames() {
+  let time = (new Date).getTime();
+  for (let i = games.length-1; i >= 0; i--) {
+    if (games[i].ttl+wait_time < time) {
+      games.splice(i, 1);
+    }
+  }
+}
+
+let kill_loop = setInterval(killGames, 333);
 app.listen(8081);

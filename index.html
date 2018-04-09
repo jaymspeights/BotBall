@@ -6,6 +6,7 @@
   <body>
     <select id="games_select">
     </select>
+    <br>
     <script type="text/javascript">
     var updateLoop = setInterval(getState, 100);
     var selectLoop = setInterval(getGames, 1000);
@@ -14,10 +15,7 @@
 
     var state;
     var prev_state;
-
-    $("#games_select").on("change", function () {
-      console.log("changed");
-    });
+    
     function setup () {
       createCanvas(800,600);
       ellipseMode(CORNER);
@@ -68,8 +66,7 @@
         for (let game of res) {
           new_games.push(game.id);
         }
-        if (new_games != games) {
-          console.log("games dont match")
+        if (!testEquality(new_games, games)) {
           for (let i = games.length-1; i >= 0; i--) {
             if (!new_games.includes(games[i])) {
               games.splice(i, 1);
@@ -100,6 +97,13 @@
           }
         });
       }
+    }
+    function testEquality(a1, a2) {
+      if (a1.length != a2.length) return false;
+      for (let i = 0; i < a1.length; i++) {
+        if (a1[i] != a2[i]) return false;
+      }
+      return true;
     }
     </script>
   </body>
