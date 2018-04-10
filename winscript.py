@@ -13,8 +13,11 @@ start_time = requests.get('https://jaymspeights.com/BotBall/state?game='+gid).js
 
 current_time = time.time()*1000;
 
-time.sleep(start_time-current_time);
+if start_time-current_time > 0:
+    time.sleep((start_time-current_time)/1000);
 
+requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
+requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
 requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
 requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
 requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
