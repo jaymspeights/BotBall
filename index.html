@@ -15,6 +15,60 @@
       </div>
       <p>Active Games: <select id="games_select"></select></p>
       <div class="docs">
+        <h2>Documentation:</h2>
+        <h3>Create a New Game</h3>
+        <p>Starting up a new game is as simple as issuing a '/create' request</p>
+        <p class="code">https://jaymspeights.com/BotBall/create</p>
+        <p>The response will be in JSON format and will contain the ID of the game created.</p>
+        <pre class="code">
+  {
+    "game_id":{GAME_ID},
+    "error":null
+  }</pre>
+        <p>We have now created a game and recieved it's ID, but we haven't yet joined it.</p>
+        <h3>Join a Game</h3>
+        <p>We can join a game by issuing a '/join' request</p>
+        <p>In the request we need to encode the id of the game into the parameter 'game'</p>
+        <p class="code">https://jaymspeights.com/BotBall/join?game={GAME_ID}</p>
+        <p>Requesting join will activate an inactive player in the game, then
+          if all players are active, the game will start.</p>
+        <p>The response will be in JSON format and will contain the ID of the player.</p>
+        <pre class="code">
+  {
+    "player_id":{PLAYER_ID},
+    "error":null
+  }</pre>
+        <p>In the event that the game has no available players,
+          instead 'error' will be non-null and 'player_id' will be null</p>
+        <h3>Move a Player</h3>
+        <p>To move a player, we need to issue a '/move' request.</p>
+        <p>In this request, we will need to encode the game and player id's, and
+          the direction we would like to move</p>
+        <p class="code">https://jaymspeights.com/BotBall/move?game={GAME_ID}&player={PLAYER_ID}&dir={DIRECTION}</p>
+        <p>If this is a valid move, it will be executed on the serve and will reflect
+          in the state of the game. Otherwise, 'error' in the response will contain the reason why the move couldn't be completed.</p>
+        <h3>Access the State of a Game</h3>
+        <p>To give your AI some access to import information such as the location of the ball
+          and the location of the players, we need to make a '/state' request.</p>
+        <p class="code">https://jaymspeights.com/BotBall/state?game={GAME_ID}&player={PLAYER_ID}</p>
+        <pre><code>
+{
+  "field": {
+    "width":11,
+    "height":7,
+    "goal_start":2,
+    "goal_end":4
+  },
+  "players": [
+    {"x":0,"y":3},
+    {"x":10,"y":3}
+  ],
+  "ball": {"x":5,"y":3},
+  "game": {"over":false,"ttl":{TIME WHEN GAME ENDS}},
+  "you": 0,
+  "error":null
+}</code></pre>
+        <p>If the query parameter 'player' is not specified, the response will not contain 'you'.</p>
       </div>
     </div>
     <br>

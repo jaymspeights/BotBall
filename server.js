@@ -145,7 +145,7 @@ function viewGame(game, player_id) {
   if (you != null)
     view.you = you;
 
-  view.game = {over:game.over, ttl: game.ttl};
+  view.game = {over:game.over, ttl:game.ttl, start_time:game.start_time};
   if (game.over)
     view.game.winner = game.winner;
   view.ball = game.ball;
