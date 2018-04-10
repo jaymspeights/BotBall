@@ -22,12 +22,13 @@ current_time = time.time();
 while True:
     state = requests.get(uri+'state?game='+gid).json();
     start_time = float(state['game']['start_time'])/1000;
-    if start_time is not none:
+    if start_time is not None:
         current_time = time.time();
         if current_time >= start_time:
             break;
         time.sleep(start_time - current_time);
-    time.sleep(.1);
+    else:
+        time.sleep(.1);
 
 def move(dir):
     requests.get(uri+'move?game='+gid+'&player='+pid+'&dir='+dir);
