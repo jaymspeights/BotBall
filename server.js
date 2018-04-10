@@ -272,6 +272,7 @@ function createGame(singleplayer) {
   }
   game.over = false;
   game.ttl = (new Date).getTime() + game_length;
+  game.start_time = null;
   return game;
 }
 

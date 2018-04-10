@@ -45,10 +45,10 @@
         <p>In this request, we will need to encode the game and player id's, and
           the direction we would like to move</p>
         <p class="code">https://jaymspeights.com/BotBall/move?game={GAME_ID}&player={PLAYER_ID}&dir={DIRECTION}</p>
-        <p>If this is a valid move, it will be executed on the serve and will reflect
+        <p>If this is a valid move, it will be executed on the server and will show
           in the state of the game. Otherwise, 'error' in the response will contain the reason why the move couldn't be completed.</p>
         <h3>Access the State of a Game</h3>
-        <p>To give your AI some access to import information such as the location of the ball
+        <p>To give your AI some access to important information such as the location of the ball
           and the location of the players, we need to make a '/state' request.</p>
         <p class="code">https://jaymspeights.com/BotBall/state?game={GAME_ID}&player={PLAYER_ID}</p>
         <pre class='code'>
@@ -69,6 +69,53 @@
   "error":null
 }</pre>
         <p>If the query parameter 'player' is not specified, the response will not contain 'you'.</p>
+        <h3>Example</h3>
+        <p>Some example code in python. Uses the Requests module for the API calls.
+          This script will start a new game, join it as both players,
+          and then execute a sequence of moves to win</p>
+        <pre class="code">
+    import requests;
+    import json;
+    import time;
+
+    uri = 'https://jaymspeights.com/BotBall/';
+
+    # Creates a game and stores the game_id
+    gid = requests.get(uri+'create').json()['game_id'];
+
+    # Join the game and stores the player_id
+    pid = requests.get(uri+'join?game='+gid).json()['player_id'];
+
+    # Adds another player to start the game
+    requests.get(uri+'join?game='+gid);
+
+    # Gets the state of the game to see time until it starts
+    state = requests.get(uri+'state?game='+gid).json();
+    start_time = float(state['game']['start_time'])/1000;
+    current_time = time.time();
+
+    # Sleeps until the game has started
+    while True:
+        state = requests.get(uri+'state?game='+gid).json();
+        start_time = float(state['game']['start_time'])/1000;
+        current_time = time.time();
+        if current_time >= start_time:
+            break;
+        time.sleep(start_time - current_time);
+
+    def move(dir):
+        requests.get(uri+'move?game='+gid+'&player='+pid+'&dir='+dir);
+
+    move('SE');
+    move('E');
+    move('E');
+    move('E');
+    move('NE');
+    move('NE');
+    move('NE');
+    move('NE');
+    move('SE');
+        </pre>
       </div>
     </div>
     <br>

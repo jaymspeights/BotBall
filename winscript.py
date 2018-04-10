@@ -2,30 +2,42 @@ import requests;
 import json;
 import time;
 
-gid = requests.get('https://jaymspeights.com/BotBall/create').json()['game_id'];
+uri = 'https://jaymspeights.com/BotBall/';
 
-pid = requests.get('https://jaymspeights.com/BotBall/join?game='+gid).json()['player_id'];
+# Creates a game and stores the game_id
+gid = requests.get(uri+'create').json()['game_id'];
 
-# adds another player to start the game
-requests.get('https://jaymspeights.com/BotBall/join?game='+gid);
+# Join the game and stores the player_id
+pid = requests.get(uri+'join?game='+gid).json()['player_id'];
 
-start_time = requests.get('https://jaymspeights.com/BotBall/state?game='+gid).json()['game']['start_time'];
+# Adds another player to start the game
+requests.get(uri+'join?game='+gid);
 
-current_time = time.time()*1000;
+# Gets the state of the game to see time until it starts
+state = requests.get(uri+'state?game='+gid).json();
+start_time = float(state['game']['start_time'])/1000;
+current_time = time.time();
 
-if start_time-current_time > 0:
-    time.sleep((start_time-current_time)/1000);
+# Sleeps until the game has started
+while True:
+    state = requests.get(uri+'state?game='+gid).json();
+    start_time = float(state['game']['start_time'])/1000;
+    if start_time is not none:
+        current_time = time.time();
+        if current_time >= start_time:
+            break;
+        time.sleep(start_time - current_time);
+    time.sleep(.1);
 
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=E');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=NE');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=SE');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=SE');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=S');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=S');
-requests.get('https://jaymspeights.com/BotBall/move?game='+gid+'&player='+pid+'&dir=NE');
+def move(dir):
+    requests.get(uri+'move?game='+gid+'&player='+pid+'&dir='+dir);
+
+move('SE');
+move('E');
+move('E');
+move('E');
+move('NE');
+move('NE');
+move('NE');
+move('NE');
+move('SE');
