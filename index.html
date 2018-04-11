@@ -60,14 +60,15 @@
     "goal_end":4
   },
   "players": [
-    {"x":0,"y":3},
-    {"x":10,"y":3}
+    {"x":0,"y":3,"Color":"Green"},
+    {"x":10,"y":3,"Color":"Blue"}
   ],
   "ball": {"x":5,"y":3},
-  "game": {"over":false,"ttl":{TIME WHEN GAME ENDS}},
+  "game": {"over":false,"ttl": ,"start_time": ,"current_time"},
   "you": 0,
   "error":null
 }</pre>
+        <p>'start_time' and 'ttl' will contain the Epoch time that the game starts and ends. 'current_time' will contain the current Epoch time.</p>
         <p>If the query parameter 'player' is not specified, the response will not contain 'you'.</p>
         <h3>Example</h3>
         <p>Some example code in python. Uses the Requests module for the API calls.
@@ -97,17 +98,16 @@
     # Sleeps until the game has started
     while True:
         state = requests.get(uri+'state?game='+gid).json();
-        start_time = float(state['game']['start_time'])/1000;
-        if start_time is not None:
-            current_time = time.time();
-            if current_time >= start_time:
-                break;
-            time.sleep(start_time - current_time);
-        else:
-          time.sleep(.1);
+        start_time = int(state['game']['start_time']);
+        current_time = int(state['game']['current_time']);
+        if start_time is None:
+            time.sleep(3);
+            continue;
+        time.sleep((start_time - current_time)/1000);
+        break;
 
     def move(dir):
-        requests.get(uri+'move?game='+gid+'&player='+pid+'&dir='+dir);
+        print(requests.get(uri+'move?game='+gid+'&player='+pid+'&dir='+dir).text);
 
     move('SE');
     move('E');
@@ -118,6 +118,8 @@
     move('NE');
     move('NE');
     move('SE');
+
+    print (requests.get(uri+'state?game='+gid).text);
         </pre>
       </div>
     </div>

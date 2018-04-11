@@ -52,13 +52,10 @@ function draw() {
       rect(i*scale, j*scale, scale, scale);
     }
   }
-  fill(0, 255, 0);
-  rect((state.players[0].x+1)*scale, (state.players[0].y+1)*scale, scale, scale);
-  fill(0, 0, 255);
-  rect((state.players[1].x+1)*scale, (state.players[1].y+1)*scale, scale, scale);
-
-  fill(255, 0, 0);
-  ellipse((state.ball.x+1)*scale, (state.ball.y+1)*scale, scale, scale);
+  for (let player of state.players) {
+    fill(player.color);
+    rect((player.x+1)*scale, (player.y+1)*scale, scale, scale);
+  }
 }
 
 function getGames() {
@@ -96,7 +93,6 @@ function getState() {
       if (res.error) {
         state = null;
         redraw();
-        console.log(res.error);
         return;
       }
       prev_state = state;
