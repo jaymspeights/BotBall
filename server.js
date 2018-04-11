@@ -140,12 +140,12 @@ function viewGame(game, player_id) {
   for (let i = 0; i < game.players.length; i++) {
     if (game.players[i].id == player_id)
       you = i;
-    view.players.push({x:game.players[i].x, y:game.players[i].y});
+    view.players.push({x:game.players[i].x, y:game.players[i].y, color:game.players[i].color});
   }
   if (you != null)
     view.you = you;
 
-  view.game = {over:game.over, ttl:game.ttl, start_time:game.start_time};
+  view.game = {over:game.over, ttl:game.ttl, start_time:game.start_time, current_time:(new Date).getTime()};
   if (game.over)
     view.game.winner = game.winner;
   view.ball = game.ball;
@@ -265,10 +265,10 @@ function createGame(singleplayer) {
   var game = {players: [], width: 11, height: 7, goal_start: 2, goal_end: 4, ball: {x:5, y:3}};
   game.id = getGameID();
   if (!singleplayer) {
-    game.players.push({y:3, x:0, id: getPlayerID(), active: false});
-    game.players.push({y:3, x:10, id: getPlayerID(), active: false});
+    game.players.push({y:3, x:0, id: getPlayerID(), active: false, color: "Green"});
+    game.players.push({y:3, x:10, id: getPlayerID(), active: false, color: "Blue"});
   } else {
-    game.players.push({y:3, x:0, id: getPlayerID(), active: false});
+    game.players.push({y:3, x:0, id: getPlayerID(), active: false, color: "Green"});
   }
   game.over = false;
   game.ttl = (new Date).getTime() + game_length;
@@ -289,7 +289,7 @@ function createGenerator() {
 
 function endGame(game, winner) {
   game.over = true;
-  game.winner = winner.id;
+  game.winner = winner.color;
   game.ttl = (new Date).getTime();
 }
 
