@@ -37,5 +37,5 @@ canvas {
   background-color: rgba(100,100,100,.2);
   font-family: monospace;
   padding: 5px;
-  overflow-x: hidden;
+  overflow-x: scroll;
 }
